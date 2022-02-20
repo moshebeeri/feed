@@ -20,10 +20,10 @@ class Post {
   body: string
 
   @IsNotEmpty()
-  communityId: number
+  communityId: string
 
   @IsNotEmpty()
-  useId: number
+  useId: string
 
   approved: boolean
 }

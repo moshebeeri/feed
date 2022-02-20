@@ -9,8 +9,11 @@ class User {
 
   @IsNotEmpty()
   name: string;
+  @IsNotEmpty()
   role: [string]
   image: string
+  @IsNotEmpty()
+  country: string
 }
 
 export class CreateUserDto {

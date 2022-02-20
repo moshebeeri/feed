@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { Neo4jService } from 'nest-neo4j/dist';
+import { WatchListHandler } from 'src/validate/watch-list.validator';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { Post } from './entities/post.entity';
@@ -9,30 +10,49 @@ export class PostService {
 
   constructor(private readonly neo4jService: Neo4jService) {}
 
-  create(createPostDto: CreatePostDto) {
-    return this.neo4jService.write(`
-            CREATE (p:Post {
-                title: $title,
-                summery: $summery,
-                body: $body,
-                approved: $approved
-            })
-            RETURN p, ID(p) AS id
+  async create(createPostDto: CreatePostDto) {
+
+    var wash = new WatchListHandler()
+    var fullText = createPostDto['title'] + ' ' + createPostDto['summery'] + ' ' + createPostDto['body']
+    //TODO: pass user object
+    if (!wash.validateAndInform(fullText, null)) {
+      throw new ForbiddenException('This post does not complies with watchlist policy')
+    }
+
+    const res = await this.neo4jService.write(`
+          MATCH (u:User {id: $userId})
+
+          MATCH (c:Community {id: $communityId})
+
+          WITH u, c
+
+
+          CREATE (p:Post {
+              id: randomUUID(),
+              created: timestamp(),
+              title: $title,
+              summery: $summery,
+              body: $body,
+              approved: $approved
+          })
+
+          CREATE (u)-[:POSTED]->(p)-[:POSTED_TO]->(c)
+
+          RETURN p
         `, {
           title: createPostDto['title'] ,
           summery: createPostDto['summery'] ,
           body: createPostDto['body'],
+          communityId: createPostDto['communityId'],
+          userId: createPostDto['userId'],
           approved: false
-    })
-      .then(({ records }) => {
-        console.log(records[0].get('id'))
-        new Post(records[0].get('p'),
-          createPostDto['title'],
-          createPostDto['summery'],
-          createPostDto['body'],
-          createPostDto['approved'],
+        })
+      return new Post(res.records[0].get('p'),
+        createPostDto['title'],
+        createPostDto['summery'],
+        createPostDto['body'],
+        createPostDto['approved'],
         )
-      })
   }
 
   findAll() {

@@ -17,6 +17,11 @@ export class UserController {
     return this.userService.findAll();
   }
 
+  @Get('link/:id/:communityId')
+  linkToCommunity(@Param('id') id: string, @Param('communityId') communityId: string) {
+    return this.userService.linkToCommunity(id, communityId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.userService.findOne(+id);

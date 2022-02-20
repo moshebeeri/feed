@@ -12,20 +12,20 @@ export class CommunityService {
     //id: randomUUID(),
     return this.neo4jService.write(`
             CREATE (c:Community {
+                id: randomUUID(),
                 name: $name,
                 title: $title,
                 image: $image
             })
-            RETURN c, ID(c) AS id
+            RETURN c
         `, {
-          name: createCommunityDto['name'],
-          title: createCommunityDto['title'] || null,
-          image: createCommunityDto['image'] || null,
+      name: createCommunityDto['name'],
+      title: createCommunityDto['title'] || null,
+      image: createCommunityDto['image'] || null,
     })
-      .then(({ records }) => {
-        console.log(records[0].get('id'))
+      .then(({ records }) =>
         new Community(records[0].get('c'), createCommunityDto['name'], createCommunityDto['image'])
-      })
+      )
   }
 
   findAll() {

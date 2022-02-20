@@ -12,17 +12,42 @@ export class UserService {
 
   create(createUserDto: CreateUserDto) {
     return this.neo4jService.write(`
+            MATCH (c:Country {name:$country})
+
+            WITH c
+
             CREATE (u:User {
                 id: randomUUID(),
                 name: $name,
                 image: $image
             })
+
+            CREATE (u)-[:FROM]->(c)
+
             RETURN u
         `, {
           name: createUserDto['name'],
+          country: createUserDto['country'],
           image: createUserDto['image'] || null,
     })
       .then(({ records }) => new User(records[0].get('u'), createUserDto['name'], createUserDto['image']))
+  }
+
+  linkToCommunity(id: string, communityId: string) {
+    return this.neo4jService.write(`
+      MATCH (c:Community {id:$communityId})
+      MATCH (u:User {id:$userId})
+
+      WITH c,u
+
+      CREATE (u)-[:FOLLOW]->(c)
+
+      RETURN c
+      `,
+      {
+        userId: id,
+        communityId: communityId,
+      });
   }
 
   findAll() {
