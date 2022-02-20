@@ -33,11 +33,11 @@ export class WatchListHandler {
     var str = text.replace(/(^\s*)|(\s*$)/gi, "");
     str = str.replace(/[ ]{2,}/gi, " ");
     str = str.replace(/\n /, "\n");
-    const forbiddenWords = str.split(' ')
+    const words = str.split(' ')
     var userForbiddenWords = []
-    for (const forbiddenWord in forbiddenWords) {
-      if (watchList.includes(forbiddenWord)) {
-        userForbiddenWords.push(forbiddenWord)
+    for (const word in words) {
+      if (watchList.includes(word)) {
+        userForbiddenWords.push(word)
       }
     }
 

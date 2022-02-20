@@ -12,14 +12,15 @@ export class FeedService {
 
   async paginatedUserFeed(userId: string, pageIndex: number, pageSize: number) {
     var feedRes = await this.neo4jService.read(`
-      MATCH(u:User{id:$userId})
-      WITH u,c
+      MATCH (u:User{id:$userId})
+      WITH u
+      MATCH (u)-[:FOLLOW]->(c:Community)<-[:POSTED_TO]-(p:Post)<-[:POSTED]-(poster:User)
 
-      MATCH (u)-[:FOLLOWS]->(c:Community)<-[:POSTED_TO]-(p:Post)<-[:POST]-(poster:User)
-      MATCH ()-[like:LIKE]-(p)
+      WITH u, p, poster
 
-      WITH count(like) as likes, length(p) as len
-      WITH (likes*80+len*20) as score
+      OPTIONAL MATCH ()-[like:LIKE]->(p)
+
+      WITH u, p, poster, (count(like)*80+size(p.body)*20) as score
 
       RETURN p
       ORDER BY u.country = poster.countery DESC, score DESC, p.created DESC

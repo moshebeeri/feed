@@ -26,7 +26,6 @@ export class PostService {
 
           WITH u, c
 
-
           CREATE (p:Post {
               id: randomUUID(),
               created: timestamp(),
